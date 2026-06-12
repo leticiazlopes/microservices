@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	github.com/ruandg/microservices-proto v0.0.0-00010101000000-000000000000
+	github.com/ruandg/microservices-proto/golang/payment v0.0.0-00010101000000-000000000000
 	google.golang.org/grpc v1.81.1
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.31.1
@@ -22,3 +23,4 @@ require (
 )
 
 replace github.com/ruandg/microservices-proto => ../../microservices-proto
+replace github.com/ruandg/microservices-proto/golang/payment => ../../microservices-proto/golang/payment

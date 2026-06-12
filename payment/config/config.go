@@ -24,19 +24,10 @@ func GetApplicationPort() int {
 
 	return port
 }
-
-// A FUNÇÃO DEVE FICAR AQUI, POIS FAZ PARTE DO PACOTE CONFIG!
-func GetPaymentServiceUrl() string {
-	url := os.Getenv("PAYMENT_SERVICE_URL")
-	if url == "" {
-		return "localhost:3001" // Porta padrão do microsserviço de pagamento
-	}
-	return url
-}
-
 func getEnvironmentValue(key string) string {
 	if os.Getenv(key) == "" {
-		log.Fatalf("%s environment variable is missing", key)
+		log.Fatalf("%s environment variable is missing.", key)
 	}
+
 	return os.Getenv(key)
 }
