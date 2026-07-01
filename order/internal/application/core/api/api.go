@@ -3,11 +3,13 @@ package api
 import (
 	"github.com/ruandg/microservices/order/internal/application/core/domain"
 	"github.com/ruandg/microservices/order/internal/ports"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Application struct {
 	db      ports.DBPort
-	payment ports.PaymentPort 
+	payment ports.PaymentPort
 }
 
 func NewApplication(db ports.DBPort, payment ports.PaymentPort) *Application {
@@ -18,6 +20,15 @@ func NewApplication(db ports.DBPort, payment ports.PaymentPort) *Application {
 }
 
 func (a Application) PlaceOrder(order domain.Order) (domain.Order, error) {
+	var totalItems int32
+	for _, item := range order.OrderItems {
+		totalItems += item.Quantity
+	}
+	if totalItems > 50 {
+		return domain.Order{}, status.Errorf(codes.InvalidArgument, "Order cannot have more than 50 items in total.")
+	}
+
+	order.Status = "Pending"
 	err := a.db.Save(&order)
 	if err != nil {
 		return domain.Order{}, err
@@ -25,7 +36,15 @@ func (a Application) PlaceOrder(order domain.Order) (domain.Order, error) {
 
 	paymentErr := a.payment.Charge(&order)
 	if paymentErr != nil {
+		order.Status = "Canceled"
+		_ = a.db.Save(&order) 
 		return domain.Order{}, paymentErr
+	}
+
+	order.Status = "Paid"
+	err = a.db.Save(&order)
+	if err != nil {
+		return domain.Order{}, err
 	}
 
 	return order, nil
