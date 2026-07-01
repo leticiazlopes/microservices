@@ -1,6 +1,8 @@
 package api
 
 import (
+	"log"
+
 	"github.com/ruandg/microservices/order/internal/application/core/domain"
 	"github.com/ruandg/microservices/order/internal/ports"
 	"google.golang.org/grpc/codes"
@@ -36,6 +38,10 @@ func (a Application) PlaceOrder(order domain.Order) (domain.Order, error) {
 
 	paymentErr := a.payment.Charge(&order)
 	if paymentErr != nil {
+		if status.Code(paymentErr) == codes.DeadlineExceeded {
+			log.Println("[LOG] A chamada ao serviço de pagamento falhou por estouro de tempo (Timeout/DeadlineExceeded).")
+		}
+
 		order.Status = "Canceled"
 		_ = a.db.Save(&order) 
 		return domain.Order{}, paymentErr
@@ -48,4 +54,4 @@ func (a Application) PlaceOrder(order domain.Order) (domain.Order, error) {
 	}
 
 	return order, nil
-}
+}go
