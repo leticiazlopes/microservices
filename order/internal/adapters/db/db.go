@@ -43,7 +43,6 @@ func NewAdapter(dataSourceUrl string) (*Adapter, error) {
 
 func (a Adapter) Get(id string) (domain.Order, error) {
 	var orderEntity Order
-	// .Preload("OrderItems") garante que o GORM busque os itens associados no banco
 	res := a.db.Preload("OrderItems").First(&orderEntity, id)
 	
 	var orderItems []domain.OrderItem
@@ -88,4 +87,13 @@ func (a Adapter) Save(order *domain.Order) error {
 	}
 	
 	return res.Error
+}
+
+func (a *Adapter) CheckStock(productCode string) (bool, error) {
+	var count int64
+	err := a.db.Table("stocks").Where("product_code = ?", productCode).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
